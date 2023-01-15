@@ -1,22 +1,25 @@
-import re
 import logging
+import re
+from typing import Optional
 from urllib.parse import urljoin
 
 import requests_cache
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-from constants import BASE_DIR, MAIN_DOC_URL, MAIN_PEP_URL, EXPECTED_STATUS
 from configs import configure_argument_parser, configure_logging
+from constants import (BASE_DIR, EXPECTED_STATUS, LATEST_VERSIONS_HEADERS,
+                       MAIN_DOC_URL, MAIN_PEP_URL, PEP_HEADERS,
+                       WHATS_NEW_HEADERS)
 from outputs import control_output
-from utils import get_response, find_tag, check_status
+from utils import check_status, find_tag, get_response
 
 
-def whats_new(session) -> list:
+def whats_new(session) -> Optional[list]:
     whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
     response = get_response(session, whats_new_url)
     if response is None:
-        return
+        return None
     soup = BeautifulSoup(response.text, features='lxml')
     main_div = find_tag(soup, 'section', attrs={'id': 'what-s-new-in-python'})
     div_with_ul = find_tag(main_div, 'div', attrs={'class': 'toctree-wrapper'})
@@ -24,7 +27,7 @@ def whats_new(session) -> list:
         'li',
         attrs={'class': 'toctree-l1'}
     )
-    results = [('Ссылка на статью', 'Заголовок', 'Редактор, Автор')]
+    results = WHATS_NEW_HEADERS
     for section in tqdm(sections_by_python):
         version_a_tag = section.find('a')
         href = version_a_tag['href']
@@ -43,10 +46,10 @@ def whats_new(session) -> list:
     return results
 
 
-def latest_versions(session) -> list:
+def latest_versions(session) -> Optional[list]:
     response = get_response(session, MAIN_DOC_URL)
     if response is None:
-        return
+        return None
     soup = BeautifulSoup(response.text, features='lxml')
     sidebar = find_tag(soup, 'div', attrs={'class': 'sphinxsidebarwrapper'})
     ul_tags = sidebar.find_all('ul')
@@ -56,7 +59,7 @@ def latest_versions(session) -> list:
             break
     else:
         raise Exception('Ничего не нашлось')
-    results = [('Ссылка на документацию', 'Версия', 'Статус')]
+    results = LATEST_VERSIONS_HEADERS
     pattern = r'Python (?P<version>\d\.\d+) \((?P<status>.*)\)'
     for a_tag in a_tags:
         link = a_tag['href']
@@ -70,11 +73,11 @@ def latest_versions(session) -> list:
     return results
 
 
-def download(session):
+def download(session) -> None:
     downloads_url = urljoin(MAIN_DOC_URL, 'download.html')
     response = get_response(session, downloads_url)
     if response is None:
-        return
+        return None
     soup = BeautifulSoup(response.text, features='lxml')
     table_tag = find_tag(soup, 'table', attrs={'class': 'docutils'})
     pdf_a4_tag = find_tag(
@@ -96,13 +99,13 @@ def download(session):
     logging.info(f'Архив был загружен и сохранён: {archive_path}')
 
 
-def pep(session) -> list:
+def pep(session) -> Optional[list]:
     response = get_response(session, MAIN_PEP_URL)
     if response is None:
-        return
+        return None
     soup = BeautifulSoup(response.text, features='lxml')
     tables = soup.find_all(attrs={'class': re.compile('table*.')})
-    results = [('Cтатус', 'Количество')]
+    results = PEP_HEADERS
     statuses_count = {}
     for table in tqdm(tables, desc='Прогресс каждой таблицы'):
         tr_tags = table.tbody.find_all('tr')
