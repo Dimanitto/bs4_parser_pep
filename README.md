@@ -2,9 +2,20 @@
 
 ## Технологии:
  ![GitHub](https://img.shields.io/badge/-GitHub-464646??style=flat-square&logo=GitHub)  ![Python](https://img.shields.io/badge/-Python-464646??style=flat-square&logo=Python) 
+ [requests_cache](https://requests-cache.readthedocs.io/en/stable/),
+ [BeautifulSoup](https://beautiful-soup-4.readthedocs.io/en/latest/),
+ [prettytable](https://ptable.readthedocs.io/en/latest/tutorial.html)
 
 ## Описание проекта
-Парсер предназначен для сбора информации о нововведениях Python и количестве статусов документов PEP
+Парсер предназначен для сбора информации о нововведениях Python и количестве статусов документов PEP.
+За процесс парсинга отвечает библиотека [```BeautifulSoup```](https://beautiful-soup-4.readthedocs.io/en/latest/).
+ Именно с её помощью происходит выбор нужных данных. Вывод статусбара базируется на библиотеке
+ [```tqdm```](https://tqdm.github.io/), а вывод табличных значений в красивом виде происходит за счёт
+ [```prettytable```](https://ptable.readthedocs.io/en/latest/tutorial.html).
+
+В целях экономии трафика и для проведения процесса тестирования и отладки было организовано кэширование запросов к
+ внешним ресурсам с помощью библиотеки [```requests_cache```](https://requests-cache.readthedocs.io/en/stable/). При
+ необходимости кэш можно очистить.
 ## Как запустить проект
 
 Клонируйте репозиторий, перейдите в папку, создайте виртуальное окружение и активируйте:
